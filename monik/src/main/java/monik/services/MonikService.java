@@ -162,20 +162,6 @@ public class MonikService extends LogcatToRabbitMqPublisher {
         }
     }
 
-    public static void updateMonikInstance(Context context, String monikInstance) {
-        Log.i(Tags.APPLICATION, "Update monik instance request: " + monikInstance);
-        final Intent intent = new Intent(context, MonikService.class);
-        setMonikInstance(intent, monikInstance);
-        context.startService(intent);
-    }
-
-    public static void updateMonikSource(Context context, String monikSource) {
-        Log.i(Tags.APPLICATION, "Update monik source request: " + monikSource);
-        final Intent intent = new Intent(context, MonikService.class);
-        MonikService.setMonikSource(intent, monikSource);
-        context.startService(intent);
-    }
-
     public static void start(Context context, StartParams startParams) {
         Log.i(Tags.APPLICATION, "Start request: " + startParams.toString());
         final Intent intent = new Intent(context, MonikService.class);
