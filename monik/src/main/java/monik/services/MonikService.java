@@ -224,7 +224,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
             startParams.monikInstance = meta.optString("instance", null);
             startParams.monikSource = meta.optString("source", null);
 
-            for (LogSeverity s : LogSeverity.values()) {
+            for (final LogSeverity s : LogSeverity.values()) {
                 if (s.name().toLowerCase().equals(severity)) {
                     startParams.minSeverity = s;
                     break;
@@ -235,7 +235,9 @@ public class MonikService extends LogcatToRabbitMqPublisher {
                 throw new IllegalArgumentException("Unexpected severity: " + severity);
             }
 
-            return startParams;
+            return monik.optBoolean("enabled", true)
+                    ? startParams
+                    : null;
 
         } catch (Exception e) {
             throw new RuntimeException("Failed load StartParams from json asset.", e);
