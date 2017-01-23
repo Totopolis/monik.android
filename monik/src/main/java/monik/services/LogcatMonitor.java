@@ -50,18 +50,22 @@ public abstract class LogcatMonitor extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            if (mLogSource == null) {
-                onBeforeStart(intent);
-                mLogSource = new LogcatLogSource(
-                        getLogcatFilter(intent, DEFAULT_LOGCAT_FILTER),
-                        getPidTidFilter(intent, DEFAULT_PIDTID_FILTER),
-                        mLogger);
-                mLogSource.start(mLogConsumer);
-            } else {
-                onCommand(intent);
-            }
+
+        if (intent == null) {
+            return START_STICKY;
         }
+
+        if (mLogSource != null) {
+            onCommand(intent);
+            return START_REDELIVER_INTENT;
+        }
+
+        onBeforeStart(intent);
+        mLogSource = new LogcatLogSource(
+                getLogcatFilter(intent, DEFAULT_LOGCAT_FILTER),
+                getPidTidFilter(intent, DEFAULT_PIDTID_FILTER),
+                mLogger);
+                mLogSource.start(mLogConsumer);
         return START_STICKY;
     }
 
