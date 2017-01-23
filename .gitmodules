@@ -1,0 +1,3 @@
+[submodule "proto/monik"]
+	path = proto/monik
+	url = https://github.com/Totopolis/monik.git
