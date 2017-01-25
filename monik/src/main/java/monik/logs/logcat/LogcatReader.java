@@ -26,6 +26,7 @@ class LogcatReader {
     }
 
     private final Object mSync = new Object();
+    private final int mLastLogsCount;
     private final String mFilter;
     private final Logger mLogger;
     private final Output mOutput;
@@ -33,7 +34,14 @@ class LogcatReader {
     private volatile Process mProcess;
     private volatile Thread mThread;
 
-    public LogcatReader(String filter, Logger logger, Output output) {
+    public LogcatReader(int lastLogsCount,
+                        String filter,
+                        Logger logger,
+                        Output output) {
+        if (lastLogsCount < 0) {
+            throw new IllegalArgumentException("lastLogsCount < 0.");
+        }
+        mLastLogsCount = lastLogsCount;
         mFilter = Checks.checkArgNotNull(filter, "filter");
         mLogger = Checks.checkArgNotNull(logger, "logger");
         mOutput = Checks.checkArgNotNull(output, "output");
@@ -170,7 +178,7 @@ class LogcatReader {
         ArrayList<String> args = new ArrayList<>();
         args.add("logcat");
         args.add(LogcatLinesParser.getFormatArg());
-        args.add("-T 0"); // last 0 lines
+        args.add("-T " + mLastLogsCount); // since mLastLogsCount
         args.add(mFilter);
         final String command = TextUtils.join(" ", args.toArray(new String[args.size()]));
         try {

@@ -23,7 +23,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
 
     private static final String EXTRA_MONIK_SOURCE   = "EXTRA_MONIK_SOURCE";
     private static final String EXTRA_MONIK_INSTANCE = "EXTRA_MONIK_INSTANCE";
-    private static final String EXTRA_MIN_SEVERITY  = "EXTRA_MIN_SEVERITY";
+    private static final String EXTRA_MIN_SEVERITY   = "EXTRA_MIN_SEVERITY";
 
     public static class Tags {
         public static final String SYSTEM       = "SYSTEM";
@@ -35,6 +35,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     public static final class StartParams {
         public Publisher.Params rmqParams;
         public LogSeverity minSeverity;
+        public int logcatLastLogsCount;
         public String monikSource;
         public String monikInstance;
 
@@ -44,6 +45,8 @@ public class MonikService extends LogcatToRabbitMqPublisher {
             sb.append("rmq{");
             sb.append(rmqParams == null ? "null" : rmqParams.toString());
             sb.append("}");
+            sb.append("; minSeverity=" + minSeverity);
+            sb.append("; logcatLastLogsCount=" + logcatLastLogsCount);
             sb.append("; monikSource=" + monikSource );
             sb.append("; monikInstance=" + monikInstance);
             return sb.toString();
@@ -166,6 +169,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
         Log.i(Tags.APPLICATION, "Start request: " + startParams.toString());
         final Intent intent = new Intent(context, MonikService.class);
         LogcatToRabbitMqTextPublisher.setRabbitMqParams(intent, startParams.rmqParams);
+        LogcatMonitor.setLogcatLastLogsCount(intent, startParams.logcatLastLogsCount);
         LogcatMonitor.setLogcatFilter(intent, severityToLogcatFilter(startParams.minSeverity));
         setMonikSource(intent, startParams.monikSource);
         setMonikInstance(intent, startParams.monikInstance);

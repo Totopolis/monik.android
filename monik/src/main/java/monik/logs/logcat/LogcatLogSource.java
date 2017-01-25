@@ -66,12 +66,15 @@ public class LogcatLogSource implements LogSource {
         private final List<String> mLogLines;
         private final StringBuilder mTextBuffer;
 
-        public Source(String logcatFilter, Logger logger, final LogConsumer logConsumer) {
+        public Source(int logcatLastLogsCount,
+                      String logcatFilter,
+                      Logger logger,
+                      final LogConsumer logConsumer) {
             mLogger = Checks.checkArgNotNull(logger, "logger");
             mLogConsumer = Checks.checkArgNotNull(logConsumer, "logConsumer");
             mLogLines = new ArrayList<>();
             mTextBuffer = new StringBuilder();
-            mLogcatReader = new LogcatReader(logcatFilter, logger, new LogcatReader.Output() {
+            mLogcatReader = new LogcatReader(logcatLastLogsCount, logcatFilter, logger, new LogcatReader.Output() {
                 @Override
                 public void writeLine(String line) {
                     consumeLine(line, false);
@@ -170,16 +173,22 @@ public class LogcatLogSource implements LogSource {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private final int mLogcatLastLogsCount;
     private final String mLogcatFilter;
     private final PidTidFilter mPidTidFilter;
     private final Logger mLogger;
     private Source mSource;
 
-    public LogcatLogSource(String logcatFilter,
+    public LogcatLogSource(int logcatLastLogsCount,
+                           String logcatFilter,
                            PidTidFilter pidtidFilter,
                            Logger logger) {
+        if (logcatLastLogsCount < 0) {
+            throw new IllegalArgumentException("logcatLastLogsCount < 0");
+        }
+        mLogcatLastLogsCount = logcatLastLogsCount;
         mLogcatFilter = Checks.checkArgNotNull(logcatFilter, "logcatFilter");
-        mPidTidFilter =  Checks.checkArgNotNull(pidtidFilter, "pidTidFilter");
+        mPidTidFilter = Checks.checkArgNotNull(pidtidFilter, "pidTidFilter");
         mLogger = Checks.checkArgNotNull(logger, "logger");
     }
 
@@ -189,6 +198,7 @@ public class LogcatLogSource implements LogSource {
             throw new IllegalStateException("Multiple start is not supported.");
         }
         mSource = new Source(
+                mLogcatLastLogsCount,
                 mLogcatFilter,
                 mLogger,
                 LogUtils.makeFiltering(consumer, mPidTidFilter.filter));
