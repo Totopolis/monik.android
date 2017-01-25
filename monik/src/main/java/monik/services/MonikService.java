@@ -144,7 +144,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
 
     private boolean isPassedByDate(LogEntry logEntry) {
         synchronized (mSync) {
-            return logEntry.date.getTime() > mLastPublishDate;
+            return logEntry.date.getTime() >= mLastPublishDate;
         }
     }
 
