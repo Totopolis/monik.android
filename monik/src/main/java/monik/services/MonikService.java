@@ -2,6 +2,7 @@ package monik.services;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -9,8 +10,11 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import monik.common.Checks;
 import monik.logs.LogEntry;
@@ -24,6 +28,10 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     private static final String EXTRA_MONIK_SOURCE   = "EXTRA_MONIK_SOURCE";
     private static final String EXTRA_MONIK_INSTANCE = "EXTRA_MONIK_INSTANCE";
     private static final String EXTRA_MIN_SEVERITY   = "EXTRA_MIN_SEVERITY";
+
+    private static final long STORE_PUBLISH_DATE_PERIOD_MILLISECONDS = 10000;
+    private static final String PREF_NAME = "MonikService";
+    private static final String PREF_LAST_PUBLISH_DATE = "PREF_LAST_PUBLISH_DATE";
 
     public static class Tags {
         public static final String SYSTEM       = "SYSTEM";
@@ -56,17 +64,27 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private final Object mSync = new Object();
+    private SharedPreferences mPrefs;
+    private Timer mStorePublishDateScheduler;
     private volatile String mMonikSource;
     private volatile String mMonikInstance;
     private volatile LogSeverity mMinSeverity;
+    private volatile long mLastPublishDate;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     protected void onLogEntry(LogEntry logEntry) {
-        if (isPassedBySeverity(logEntry.severity)) {
-            super.onLogEntry(logEntry);
+        if (!isPassedByDate(logEntry)) {
+            return;
         }
+
+        if (!isPassedBySeverity(logEntry.severity)) {
+            return;
+        }
+
+        super.onLogEntry(logEntry);
+        updatePushlishDate(logEntry);
     }
 
     @Override
@@ -124,8 +142,56 @@ public class MonikService extends LogcatToRabbitMqPublisher {
         }
     }
 
+    private boolean isPassedByDate(LogEntry logEntry) {
+        synchronized (mSync) {
+            return logEntry.date.getTime() > mLastPublishDate;
+        }
+    }
+
+    private void updatePushlishDate(LogEntry logEntry) {
+        final long date = logEntry.date.getTime();
+        synchronized (mSync) {
+            mLastPublishDate = date;
+        }
+    }
+
+    private void storePublishDate() {
+        long date = 0;
+        synchronized (mSync) {
+            date = mLastPublishDate;
+        }
+        mPrefs.edit().putLong(PREF_LAST_PUBLISH_DATE, date).apply();
+    }
+
+    private void loadPublishDate(long defaultVal) {
+        final long date = mPrefs.getLong(PREF_LAST_PUBLISH_DATE, defaultVal);
+        synchronized (mSync) {
+            mLastPublishDate = date;
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mStorePublishDateScheduler != null) {
+            mStorePublishDateScheduler.cancel();
+        }
+        super.onDestroy();
+    }
+
     @Override
     protected void onBeforeStart(Intent intent) {
+
+        mPrefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        loadPublishDate(0);
+        mStorePublishDateScheduler = new Timer();
+        mStorePublishDateScheduler.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                storePublishDate();
+            }
+        }, STORE_PUBLISH_DATE_PERIOD_MILLISECONDS, STORE_PUBLISH_DATE_PERIOD_MILLISECONDS);
+
         handleIntent(intent);
         super.onBeforeStart(intent);
     }
