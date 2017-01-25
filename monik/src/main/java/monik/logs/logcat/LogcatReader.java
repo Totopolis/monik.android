@@ -38,9 +38,6 @@ class LogcatReader {
                         String filter,
                         Logger logger,
                         Output output) {
-        if (lastLogsCount < 0) {
-            throw new IllegalArgumentException("lastLogsCount < 0.");
-        }
         mLastLogsCount = lastLogsCount;
         mFilter = Checks.checkArgNotNull(filter, "filter");
         mLogger = Checks.checkArgNotNull(logger, "logger");
@@ -177,8 +174,12 @@ class LogcatReader {
     private Process startLogcat() {
         ArrayList<String> args = new ArrayList<>();
         args.add("logcat");
+        args.add("-b main");
         args.add(LogcatLinesParser.getFormatArg());
-        args.add("-T " + mLastLogsCount); // since mLastLogsCount
+        if (mLastLogsCount >= 0) {
+            // Note: Not all logcast supports the -T option!
+            args.add("-T " + mLastLogsCount); // since mLastLogsCount
+        }
         args.add(mFilter);
         final String command = TextUtils.join(" ", args.toArray(new String[args.size()]));
         try {

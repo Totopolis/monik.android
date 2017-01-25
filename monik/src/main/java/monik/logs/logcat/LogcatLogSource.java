@@ -183,9 +183,6 @@ public class LogcatLogSource implements LogSource {
                            String logcatFilter,
                            PidTidFilter pidtidFilter,
                            Logger logger) {
-        if (logcatLastLogsCount < 0) {
-            throw new IllegalArgumentException("logcatLastLogsCount < 0");
-        }
         mLogcatLastLogsCount = logcatLastLogsCount;
         mLogcatFilter = Checks.checkArgNotNull(logcatFilter, "logcatFilter");
         mPidTidFilter = Checks.checkArgNotNull(pidtidFilter, "pidTidFilter");

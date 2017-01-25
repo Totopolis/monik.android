@@ -43,7 +43,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     public static final class StartParams {
         public Publisher.Params rmqParams;
         public LogSeverity minSeverity;
-        public int logcatLastLogsCount;
+        public int logcatLastLogsCount = -1;
         public String monikSource;
         public String monikInstance;
 

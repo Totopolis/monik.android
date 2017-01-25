@@ -15,7 +15,7 @@ import monik.logs.logcat.LogcatLogSource;
 public abstract class LogcatMonitor extends Service {
 
     private static final String EXTRA_LOGCAT_LAST_LOGS_COUNT = "EXTRA_LOGCAT_LAST_LOGS_COUNT";
-    private static final int DEFAULT_LOGCAT_LAST_LOGS_COUNT = 0;
+    private static final int DEFAULT_LOGCAT_LAST_LOGS_COUNT = -1;
 
     private static final String EXTRA_LOGCAT_FILTER = "EXTRA_LOGCAT_FILTER";
     private static final String DEFAULT_LOGCAT_FILTER = "*:I";
@@ -91,16 +91,10 @@ public abstract class LogcatMonitor extends Service {
     }
 
     public static void setLogcatLastLogsCount(Intent intent, int logcatLastLogsCount) {
-        if (logcatLastLogsCount < 0) {
-            throw new IllegalArgumentException("logcatLastLogsCount < 0");
-        }
         intent.putExtra(EXTRA_LOGCAT_LAST_LOGS_COUNT, logcatLastLogsCount);
     }
 
     public static int getLogcatLastLogsCount(Intent intent, int defaultLogcatLastLogsCount) {
-        if (defaultLogcatLastLogsCount < 0) {
-            throw new IllegalArgumentException("defaultLogcatLastLogsCount < 0");
-        }
         return intent.getIntExtra(EXTRA_LOGCAT_LAST_LOGS_COUNT, defaultLogcatLastLogsCount);
     }
 
