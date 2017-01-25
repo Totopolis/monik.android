@@ -175,6 +175,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
         if (mStorePublishDateScheduler != null) {
             mStorePublishDateScheduler.cancel();
         }
+        storePublishDate();
         super.onDestroy();
     }
 
