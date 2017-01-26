@@ -10,7 +10,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -143,9 +142,17 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     }
 
     private boolean isPassedByDate(LogEntry logEntry) {
+        final long logDate = logEntry.date.getTime();
         synchronized (mSync) {
-            return logEntry.date.getTime() >= mLastPublishDate;
+            if (logDate >= mLastPublishDate) {
+                return true;
+            }
+            final long nowDate = System.currentTimeMillis();
+            if (mLastPublishDate >= nowDate) {
+                return true;
+            }
         }
+        return false;
     }
 
     private void updatePushlishDate(LogEntry logEntry) {
@@ -174,6 +181,7 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     public void onDestroy() {
         if (mStorePublishDateScheduler != null) {
             mStorePublishDateScheduler.cancel();
+            mStorePublishDateScheduler = null;
         }
         storePublishDate();
         super.onDestroy();
@@ -183,8 +191,8 @@ public class MonikService extends LogcatToRabbitMqPublisher {
     protected void onBeforeStart(Intent intent) {
 
         mPrefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-
         loadPublishDate(0);
+
         mStorePublishDateScheduler = new Timer();
         mStorePublishDateScheduler.schedule(new TimerTask() {
             @Override
