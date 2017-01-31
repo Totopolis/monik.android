@@ -49,13 +49,13 @@ public class MonikService extends LogcatToRabbitMqPublisher {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
+            sb.append("; monikInstance=" + monikInstance);
+            sb.append("; monikSource=" + monikSource );
+            sb.append("; minSeverity=" + minSeverity);
+            sb.append("; logcatLastLogsCount=" + logcatLastLogsCount);
             sb.append("rmq{");
             sb.append(rmqParams == null ? "null" : rmqParams.toString());
             sb.append("}");
-            sb.append("; minSeverity=" + minSeverity);
-            sb.append("; logcatLastLogsCount=" + logcatLastLogsCount);
-            sb.append("; monikSource=" + monikSource );
-            sb.append("; monikInstance=" + monikInstance);
             return sb.toString();
         }
     }
